@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, Chip } from 'react-native-paper';
+import { View, ScrollView, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { colors } from '../constants/colors';
 import { MindfulTask, TaskCategory } from '../types';
 import TaskService from '../services/TaskService';
 import { TASK_CATEGORY_LABELS } from '../constants/tasks';
+import { Theme } from '../constants/theme';
+import { useResponsive } from '../hooks/useResponsive';
+import {
+  Card,
+  Text,
+  Button,
+  Chip,
+  Row,
+  Column,
+  Spacer,
+} from '../components/common';
 
 const TasksScreen: React.FC = () => {
   const [tasks, setTasks] = useState<MindfulTask[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | 'all'>('all');
   const [loading, setLoading] = useState(false);
+  const { getIconSize, isSmall, isTablet } = useResponsive();
 
   useEffect(() => {
     loadTasks();
@@ -29,7 +39,6 @@ const TasksScreen: React.FC = () => {
 
   const handleCompleteTask = async (task: MindfulTask) => {
     if (task.requiresPhoto) {
-      // Request camera permission
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
       if (!permissionResult.granted) {
@@ -40,7 +49,6 @@ const TasksScreen: React.FC = () => {
         return;
       }
 
-      // Take photo
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [4, 3],
@@ -81,8 +89,8 @@ const TasksScreen: React.FC = () => {
     }
   };
 
-  const getTaskIcon = (category: TaskCategory): string => {
-    const icons: Record<TaskCategory, string> = {
+  const getTaskIcon = (category: TaskCategory): keyof typeof MaterialCommunityIcons.glyphMap => {
+    const icons: Record<TaskCategory, keyof typeof MaterialCommunityIcons.glyphMap> = {
       [TaskCategory.OUTDOOR]: 'tree',
       [TaskCategory.READING]: 'book-open-variant',
       [TaskCategory.EXERCISE]: 'dumbbell',
@@ -96,177 +104,137 @@ const TasksScreen: React.FC = () => {
 
   const getCategoryColor = (category: TaskCategory): string => {
     const categoryColors: Record<TaskCategory, string> = {
-      [TaskCategory.OUTDOOR]: colors.outdoor,
-      [TaskCategory.READING]: colors.reading,
-      [TaskCategory.EXERCISE]: colors.exercise,
-      [TaskCategory.MEDITATION]: colors.meditation,
-      [TaskCategory.CREATIVE]: colors.creative,
-      [TaskCategory.SOCIAL]: colors.social,
-      [TaskCategory.CUSTOM]: colors.custom,
+      [TaskCategory.OUTDOOR]: Theme.colors.outdoor,
+      [TaskCategory.READING]: Theme.colors.reading,
+      [TaskCategory.EXERCISE]: Theme.colors.exercise,
+      [TaskCategory.MEDITATION]: Theme.colors.meditation,
+      [TaskCategory.CREATIVE]: Theme.colors.creative,
+      [TaskCategory.SOCIAL]: Theme.colors.social,
+      [TaskCategory.CUSTOM]: Theme.colors.custom,
     };
-    return categoryColors[category] || colors.primary;
+    return categoryColors[category] || Theme.colors.primary;
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-        <Chip
-          selected={selectedCategory === 'all'}
-          onPress={() => setSelectedCategory('all')}
-          style={styles.chip}
-        >
-          Toate
-        </Chip>
-        {Object.values(TaskCategory).map((category) => (
+    <View style={{ flex: 1, backgroundColor: Theme.colors.background }}>
+      {/* Category Filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: Theme.spacing.md,
+          paddingVertical: Theme.spacing.sm,
+        }}
+        style={{ flexGrow: 0 }}
+      >
+        <Row spacing={Theme.spacing.sm}>
           <Chip
-            key={category}
-            selected={selectedCategory === category}
-            onPress={() => setSelectedCategory(category)}
-            style={styles.chip}
-          >
-            {TASK_CATEGORY_LABELS[category]}
-          </Chip>
-        ))}
+            label="Toate"
+            selected={selectedCategory === 'all'}
+            onPress={() => setSelectedCategory('all')}
+            color={Theme.colors.primary}
+          />
+          {Object.values(TaskCategory).map((category) => (
+            <Chip
+              key={category}
+              label={TASK_CATEGORY_LABELS[category]}
+              selected={selectedCategory === category}
+              onPress={() => setSelectedCategory(category)}
+              color={getCategoryColor(category)}
+            />
+          ))}
+        </Row>
       </ScrollView>
 
-      <ScrollView style={styles.tasksList}>
+      {/* Tasks List */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: Theme.spacing.md,
+          paddingBottom: Theme.spacing.xl,
+        }}
+      >
         {tasks.map((task) => (
-          <Card key={task.id} style={styles.taskCard}>
-            <Card.Content>
-              <View style={styles.taskHeader}>
-                <View style={[styles.iconContainer, { backgroundColor: getCategoryColor(task.category) }]}>
+          <Card key={task.id} elevation="md" margin={false} style={{ marginBottom: Theme.spacing.md }}>
+            <Column spacing={Theme.spacing.md}>
+              {/* Task Header */}
+              <Row spacing={Theme.spacing.md} align="flex-start">
+                <View
+                  style={{
+                    width: getIconSize(isSmall ? 48 : 60),
+                    height: getIconSize(isSmall ? 48 : 60),
+                    borderRadius: getIconSize(isSmall ? 24 : 30),
+                    backgroundColor: getCategoryColor(task.category),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
                   <MaterialCommunityIcons
-                    name={getTaskIcon(task.category) as any}
-                    size={30}
-                    color="white"
+                    name={getTaskIcon(task.category)}
+                    size={getIconSize(isSmall ? 24 : 30)}
+                    color="#FFFFFF"
                   />
                 </View>
-                <View style={styles.taskInfo}>
-                  <Text variant="titleMedium" style={styles.taskTitle}>
+                <Column spacing={Theme.spacing.xs} style={{ flex: 1 }}>
+                  <Text variant="h4" weight="600">
                     {task.title}
                   </Text>
-                  <Text variant="bodySmall" style={styles.taskDescription}>
+                  <Text variant="body2" color={Theme.colors.textSecondary}>
                     {task.description}
                   </Text>
-                </View>
-              </View>
+                </Column>
+              </Row>
 
-              <View style={styles.taskFooter}>
-                <View style={styles.rewardContainer}>
-                  <MaterialCommunityIcons name="clock-plus" size={20} color={colors.success} />
-                  <Text variant="bodyMedium" style={styles.rewardText}>
+              {/* Task Footer */}
+              <Row justify="space-between" align="center">
+                <Row spacing={Theme.spacing.xs} align="center">
+                  <MaterialCommunityIcons
+                    name="clock-plus"
+                    size={getIconSize(20)}
+                    color={Theme.colors.success}
+                  />
+                  <Text variant="body1" weight="600" color={Theme.colors.success}>
                     +{task.timeReward} min
                   </Text>
-                </View>
+                </Row>
                 {task.requiresPhoto && (
-                  <Chip icon="camera" compact>
-                    Necesită foto
-                  </Chip>
+                  <Chip
+                    label="Necesită foto"
+                    icon="camera"
+                    color={Theme.colors.info}
+                  />
                 )}
-              </View>
+              </Row>
 
+              {/* Complete Button */}
               <Button
-                mode="contained"
+                title="Completează"
                 onPress={() => handleCompleteTask(task)}
-                style={styles.completeButton}
                 loading={loading}
                 disabled={loading}
-              >
-                Completează
-              </Button>
-            </Card.Content>
+                fullWidth
+                icon="check-circle"
+              />
+            </Column>
           </Card>
         ))}
 
+        {/* Empty State */}
         {tasks.length === 0 && (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="clipboard-text-off" size={64} color={colors.textSecondary} />
-            <Text variant="bodyLarge" style={styles.emptyText}>
+          <Column spacing={Theme.spacing.md} align="center" style={{ paddingVertical: Theme.spacing.xxl * 2 }}>
+            <MaterialCommunityIcons
+              name="clipboard-text-off"
+              size={getIconSize(80)}
+              color={Theme.colors.textSecondary}
+            />
+            <Text variant="h4" color={Theme.colors.textSecondary} align="center">
               Nu există activități în această categorie
             </Text>
-          </View>
+          </Column>
         )}
-
-        <View style={styles.bottomPadding} />
       </ScrollView>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  filterContainer: {
-    padding: 16,
-    paddingBottom: 8,
-    maxHeight: 60,
-  },
-  chip: {
-    marginRight: 8,
-  },
-  tasksList: {
-    flex: 1,
-    padding: 16,
-    paddingTop: 8,
-  },
-  taskCard: {
-    marginBottom: 16,
-    elevation: 2,
-  },
-  taskHeader: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  taskInfo: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  taskDescription: {
-    color: colors.textSecondary,
-  },
-  taskFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  rewardContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rewardText: {
-    marginLeft: 4,
-    fontWeight: 'bold',
-    color: colors.success,
-  },
-  completeButton: {
-    marginTop: 8,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    marginTop: 16,
-    color: colors.textSecondary,
-  },
-  bottomPadding: {
-    height: 20,
-  },
-});
 
 export default TasksScreen;

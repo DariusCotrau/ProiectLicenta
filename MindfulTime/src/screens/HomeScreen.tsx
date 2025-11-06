@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Text, Card, Button, ProgressBar } from 'react-native-paper';
+import { ScrollView, RefreshControl, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors } from '../constants/colors';
 import StorageService from '../services/StorageService';
 import { UserStats, App } from '../types';
+import { Theme } from '../constants/theme';
+import { useResponsive } from '../hooks/useResponsive';
+import {
+  Container,
+  Card,
+  Text,
+  Row,
+  Column,
+  Spacer,
+  ProgressBar,
+} from '../components/common';
 
 const HomeScreen: React.FC = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [apps, setApps] = useState<App[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { isTablet, getIconSize } = useResponsive();
 
   const loadData = async () => {
     const userStats = await StorageService.getUserStats();
@@ -31,190 +41,134 @@ const HomeScreen: React.FC = () => {
   const blockedApps = apps.filter(app => app.isBlocked);
   const totalTimeUsed = apps.reduce((sum, app) => sum + app.usedTime, 0);
   const totalTimeLimit = apps.reduce((sum, app) => sum + app.dailyLimit, 0);
-  const usageProgress = totalTimeLimit > 0 ? totalTimeUsed / totalTimeLimit : 0;
+  const usageProgress = totalTimeLimit > 0 ? (totalTimeUsed / totalTimeLimit) * 100 : 0;
 
   return (
     <ScrollView
-      style={styles.container}
+      style={{ flex: 1, backgroundColor: Theme.colors.background }}
+      contentContainerStyle={{ paddingBottom: Theme.spacing.xl }}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Theme.colors.primary]}
+        />
       }
     >
-      <Card style={styles.card}>
-        <Card.Content>
-          <View style={styles.header}>
-            <MaterialCommunityIcons name="clock-outline" size={40} color={colors.primary} />
-            <Text variant="headlineSmall" style={styles.title}>
-              Bine ai venit!
-            </Text>
-          </View>
-          <Text variant="bodyMedium" style={styles.subtitle}>
+      {/* Welcome Card */}
+      <Card elevation="md">
+        <Column spacing={Theme.spacing.sm} align="center">
+          <MaterialCommunityIcons
+            name="clock-outline"
+            size={getIconSize(48)}
+            color={Theme.colors.primary}
+          />
+          <Text variant="h3" align="center" weight="700">
+            Bine ai venit!
+          </Text>
+          <Text variant="body2" color={Theme.colors.textSecondary} align="center">
             Starea ta de astăzi
           </Text>
-        </Card.Content>
+        </Column>
       </Card>
 
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>
+      {/* App Usage Card */}
+      <Card elevation="md">
+        <Column spacing={Theme.spacing.md}>
+          <Text variant="h4" weight="600">
             Utilizare aplicații
           </Text>
-          <View style={styles.progressContainer}>
-            <ProgressBar
-              progress={usageProgress}
-              color={usageProgress > 0.8 ? colors.error : colors.primary}
-              style={styles.progressBar}
-            />
-            <Text variant="bodySmall" style={styles.progressText}>
-              {totalTimeUsed} / {totalTimeLimit} minute
-            </Text>
-          </View>
-        </Card.Content>
+          <ProgressBar
+            progress={usageProgress}
+            color={usageProgress > 80 ? Theme.colors.error : Theme.colors.primary}
+            showLabel
+            label={`${totalTimeUsed} / ${totalTimeLimit} minute`}
+            height={10}
+          />
+        </Column>
       </Card>
 
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>
+      {/* Stats Grid */}
+      <Card elevation="md">
+        <Column spacing={Theme.spacing.md}>
+          <Text variant="h4" weight="600">
             Activități astăzi
           </Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text variant="headlineMedium" style={styles.statNumber}>
+          <Row justify="space-around" align="stretch">
+            <Column align="center" spacing={Theme.spacing.xs} style={{ flex: 1 }}>
+              <Text variant="h2" weight="700" color={Theme.colors.primary}>
                 {stats?.tasksCompletedToday || 0}
               </Text>
-              <Text variant="bodySmall">Completate</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text variant="headlineMedium" style={[styles.statNumber, { color: colors.success }]}>
+              <Text variant="body2" color={Theme.colors.textSecondary} align="center">
+                Completate
+              </Text>
+            </Column>
+            <View style={{ width: 1, backgroundColor: Theme.colors.border, marginVertical: Theme.spacing.sm }} />
+            <Column align="center" spacing={Theme.spacing.xs} style={{ flex: 1 }}>
+              <Text variant="h2" weight="700" color={Theme.colors.success}>
                 +{stats?.totalTimeEarned || 0}
               </Text>
-              <Text variant="bodySmall">Minute câștigate</Text>
-            </View>
-          </View>
-        </Card.Content>
+              <Text variant="body2" color={Theme.colors.textSecondary} align="center">
+                Minute câștigate
+              </Text>
+            </Column>
+          </Row>
+        </Column>
       </Card>
 
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>
+      {/* Streak Card */}
+      <Card elevation="md">
+        <Column spacing={Theme.spacing.md} align="center">
+          <Text variant="h4" weight="600" style={{ alignSelf: 'flex-start' }}>
             Streak actual
           </Text>
-          <View style={styles.streakContainer}>
-            <MaterialCommunityIcons name="fire" size={50} color={colors.warning} />
-            <Text variant="headlineLarge" style={styles.streakNumber}>
-              {stats?.currentStreak || 0}
-            </Text>
-            <Text variant="bodySmall">zile consecutive</Text>
-          </View>
-          <Text variant="bodySmall" style={styles.streakRecord}>
+          <Spacer size="sm" />
+          <MaterialCommunityIcons
+            name="fire"
+            size={getIconSize(64)}
+            color={Theme.colors.warning}
+          />
+          <Text variant="h1" weight="700">
+            {stats?.currentStreak || 0}
+          </Text>
+          <Text variant="body2" color={Theme.colors.textSecondary}>
+            zile consecutive
+          </Text>
+          <Spacer size="xs" />
+          <Text variant="caption" color={Theme.colors.textSecondary}>
             Record: {stats?.longestStreak || 0} zile
           </Text>
-        </Card.Content>
+        </Column>
       </Card>
 
+      {/* Blocked Apps Warning */}
       {blockedApps.length > 0 && (
-        <Card style={[styles.card, styles.warningCard]}>
-          <Card.Content>
-            <View style={styles.warningHeader}>
-              <MaterialCommunityIcons name="alert" size={24} color={colors.error} />
-              <Text variant="titleMedium" style={[styles.cardTitle, { color: colors.error }]}>
+        <Card
+          elevation="md"
+          style={{ backgroundColor: Theme.colors.error + '10' }}
+        >
+          <Column spacing={Theme.spacing.sm}>
+            <Row spacing={Theme.spacing.sm} align="center">
+              <MaterialCommunityIcons
+                name="alert"
+                size={getIconSize(24)}
+                color={Theme.colors.error}
+              />
+              <Text variant="h4" weight="600" color={Theme.colors.error}>
                 Aplicații blocate
               </Text>
-            </View>
-            <Text variant="bodyMedium">
+            </Row>
+            <Text variant="body1">
               {blockedApps.length} {blockedApps.length === 1 ? 'aplicație este blocată' : 'aplicații sunt blocate'}
             </Text>
-            <Text variant="bodySmall" style={styles.warningSubtext}>
+            <Text variant="body2" color={Theme.colors.textSecondary}>
               Completează activități pentru a câștiga mai mult timp
             </Text>
-          </Card.Content>
+          </Column>
         </Card>
       )}
-
-      <View style={styles.bottomPadding} />
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  card: {
-    margin: 16,
-    marginBottom: 8,
-    elevation: 4,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    marginTop: 8,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    textAlign: 'center',
-    color: colors.textSecondary,
-  },
-  cardTitle: {
-    marginBottom: 12,
-    fontWeight: 'bold',
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
-  progressBar: {
-    height: 10,
-    borderRadius: 5,
-  },
-  progressText: {
-    marginTop: 8,
-    textAlign: 'right',
-    color: colors.textSecondary,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  streakContainer: {
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  streakNumber: {
-    fontWeight: 'bold',
-    marginTop: 8,
-  },
-  streakRecord: {
-    textAlign: 'center',
-    color: colors.textSecondary,
-    marginTop: 8,
-  },
-  warningCard: {
-    backgroundColor: '#ffebee',
-  },
-  warningHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  warningSubtext: {
-    marginTop: 8,
-    color: colors.textSecondary,
-  },
-  bottomPadding: {
-    height: 20,
-  },
-});
 
 export default HomeScreen;
