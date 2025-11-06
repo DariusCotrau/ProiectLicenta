@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(npx create-expo-app@latest MindfulTime --template blank-typescript)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm start)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx expo start:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(nul)",
+      "Bash(npm run start:clear:*)"
     ],
     "deny": [],
     "ask": []
