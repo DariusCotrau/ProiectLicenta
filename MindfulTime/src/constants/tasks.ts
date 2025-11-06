@@ -1,0 +1,87 @@
+import { MindfulTask, TaskCategory } from '../types';
+
+// Predefined mindful tasks
+export const PREDEFINED_TASKS: MindfulTask[] = [
+  {
+    id: 'outdoor-walk',
+    title: 'Plimbare în aer liber',
+    description: 'Mergi 15 minute afară și fotografiază ceva din natură',
+    category: TaskCategory.OUTDOOR,
+    timeReward: 30,
+    icon: 'walk',
+    requiresPhoto: true,
+  },
+  {
+    id: 'reading-book',
+    title: 'Citit carte',
+    description: 'Citește 15 minute dintr-o carte fizică',
+    category: TaskCategory.READING,
+    timeReward: 25,
+    icon: 'book',
+    requiresPhoto: true,
+  },
+  {
+    id: 'meditation',
+    title: 'Meditație',
+    description: 'Meditează sau practică respirație conștientă 10 minute',
+    category: TaskCategory.MEDITATION,
+    timeReward: 20,
+    icon: 'self-improvement',
+    requiresPhoto: false,
+  },
+  {
+    id: 'exercise',
+    title: 'Exerciții fizice',
+    description: 'Fă exerciții fizice sau stretching 15 minute',
+    category: TaskCategory.EXERCISE,
+    timeReward: 35,
+    icon: 'fitness-center',
+    requiresPhoto: true,
+  },
+  {
+    id: 'creative-activity',
+    title: 'Activitate creativă',
+    description: 'Desenează, pictează sau creează ceva 20 minute',
+    category: TaskCategory.CREATIVE,
+    timeReward: 30,
+    icon: 'palette',
+    requiresPhoto: true,
+  },
+  {
+    id: 'journal-writing',
+    title: 'Jurnal personal',
+    description: 'Scrie în jurnal despre ziua ta 10 minute',
+    category: TaskCategory.CREATIVE,
+    timeReward: 20,
+    icon: 'edit',
+    requiresPhoto: true,
+  },
+  {
+    id: 'social-interaction',
+    title: 'Interacțiune socială',
+    description: 'Vorbește față în față cu cineva 15 minute',
+    category: TaskCategory.SOCIAL,
+    timeReward: 25,
+    icon: 'people',
+    requiresPhoto: false,
+  },
+  {
+    id: 'cooking',
+    title: 'Gătit',
+    description: 'Pregătește o masă sănătoasă',
+    category: TaskCategory.CREATIVE,
+    timeReward: 30,
+    icon: 'restaurant',
+    requiresPhoto: true,
+  },
+];
+
+export const TASK_CATEGORY_LABELS: Record<TaskCategory, string> = {
+  [TaskCategory.OUTDOOR]: 'Activități în aer liber',
+  [TaskCategory.READING]: 'Lectură',
+  [TaskCategory.EXERCISE]: 'Exerciții fizice',
+  [TaskCategory.MEDITATION]: 'Meditație & Mindfulness',
+  [TaskCategory.CREATIVE]: 'Activități creative',
+  [TaskCategory.SOCIAL]: 'Socializare',
+  [TaskCategory.CUSTOM]: 'Personalizat',
+};
