@@ -1,10 +1,11 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors } from '../constants/colors';
+import { Theme } from '../constants/theme';
 
-// Import screens (we'll create these next)
+// Import screens
 import HomeScreen from '../screens/HomeScreen';
 import TasksScreen from '../screens/TasksScreen';
 import AppsScreen from '../screens/AppsScreen';
@@ -21,21 +22,52 @@ export type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+/**
+ * AppNavigator cu design responsive cross-platform
+ * Tab bar se adaptează automat la iOS și Android
+ */
 const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.textSecondary,
+          // Culori
+          tabBarActiveTintColor: Theme.colors.primary,
+          tabBarInactiveTintColor: Theme.colors.textSecondary,
+
+          // Header styling
           headerStyle: {
-            backgroundColor: colors.primary,
+            backgroundColor: Theme.colors.primary,
+            elevation: 0,
+            shadowOpacity: 0,
           },
-          headerTintColor: colors.textLight,
+          headerTintColor: '#FFFFFF',
+          headerTitleStyle: {
+            fontWeight: '600',
+            fontSize: 18,
+          },
+
+          // Tab bar styling - platform specific
           tabBarStyle: {
-            paddingBottom: 5,
-            paddingTop: 5,
-            height: 60,
+            backgroundColor: Theme.colors.surface,
+            borderTopWidth: 1,
+            borderTopColor: Theme.colors.border,
+            paddingBottom: Platform.select({ ios: 20, android: 8 }),
+            paddingTop: 8,
+            height: Platform.select({ ios: 85, android: 65 }),
+            ...Theme.shadows.md,
+          },
+
+          // Label styling
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+            marginTop: -4,
+          },
+
+          // Icon styling
+          tabBarIconStyle: {
+            marginTop: 4,
           },
         }}
       >
@@ -44,8 +76,12 @@ const AppNavigator: React.FC = () => {
           component={HomeScreen}
           options={{
             title: 'Acasă',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="home" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'home' : 'home-outline'}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
@@ -54,8 +90,12 @@ const AppNavigator: React.FC = () => {
           component={TasksScreen}
           options={{
             title: 'Activități',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="format-list-checks" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'format-list-checks' : 'format-list-checkbox'}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
@@ -64,8 +104,12 @@ const AppNavigator: React.FC = () => {
           component={AppsScreen}
           options={{
             title: 'Aplicații',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="apps" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'apps' : 'apps-box'}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
@@ -74,8 +118,12 @@ const AppNavigator: React.FC = () => {
           component={StatsScreen}
           options={{
             title: 'Statistici',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="chart-line" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'chart-line' : 'chart-line-variant'}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
@@ -84,8 +132,12 @@ const AppNavigator: React.FC = () => {
           component={SettingsScreen}
           options={{
             title: 'Setări',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="cog" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'cog' : 'cog-outline'}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
