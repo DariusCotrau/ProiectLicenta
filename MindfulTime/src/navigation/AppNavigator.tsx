@@ -12,6 +12,7 @@ import HomeScreen from '../screens/HomeScreen';
 import TasksScreen from '../screens/TasksScreen';
 import AppsScreen from '../screens/AppsScreen';
 import StatsScreen from '../screens/StatsScreen';
+import RewardsScreen from '../screens/RewardsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
@@ -20,6 +21,7 @@ export type RootTabParamList = {
   Home: undefined;
   Tasks: undefined;
   Apps: undefined;
+  Rewards: undefined;
   Stats: undefined;
   Settings: undefined;
 };
@@ -132,6 +134,20 @@ const MainTabNavigator: React.FC = () => {
             tabBarIcon: ({ color, size, focused }) => (
               <MaterialCommunityIcons
                 name={focused ? 'apps' : 'apps-box'}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Rewards"
+          component={RewardsScreen}
+          options={{
+            title: 'Recompense',
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialCommunityIcons
+                name={focused ? 'trophy' : 'trophy-outline'}
                 size={size}
                 color={color}
               />

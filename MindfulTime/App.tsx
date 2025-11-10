@@ -7,6 +7,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider } from './src/context/AuthContext';
 import { colors } from './src/constants/colors';
 import { initializeDemoData } from './src/utils/initializeDemoData';
+import RewardService from './src/services/RewardService';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +17,9 @@ export default function App() {
       try {
         // Initialize demo data on first launch
         await initializeDemoData();
+
+        // Initialize reward system
+        await RewardService.initialize();
       } catch (error) {
         console.error('Error initializing app:', error);
       } finally {

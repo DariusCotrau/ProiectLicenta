@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, RefreshControl, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import StorageService from '../services/StorageService';
-import { UserStats, App } from '../types';
+import RewardService from '../services/RewardService';
+import { UserStats, App, RewardBalance } from '../types';
 import { Theme } from '../constants/theme';
 import { useResponsive } from '../hooks/useResponsive';
 import {
@@ -18,14 +19,17 @@ import {
 const HomeScreen: React.FC = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [apps, setApps] = useState<App[]>([]);
+  const [rewardBalance, setRewardBalance] = useState<RewardBalance | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const { isTablet, getIconSize } = useResponsive();
 
   const loadData = async () => {
     const userStats = await StorageService.getUserStats();
     const userApps = await StorageService.getApps();
+    const balance = await RewardService.getRewardBalance();
     setStats(userStats);
     setApps(userApps);
+    setRewardBalance(balance);
   };
 
   useEffect(() => {
@@ -71,6 +75,45 @@ const HomeScreen: React.FC = () => {
           </Text>
         </Column>
       </Card>
+
+      {/* Rewards Summary Card */}
+      {rewardBalance && (
+        <Card elevation="md" style={{ backgroundColor: Theme.colors.secondary + '10' }}>
+          <Column spacing={Theme.spacing.md}>
+            <Row justify="space-between" align="center">
+              <Row align="center" spacing={Theme.spacing.sm}>
+                <MaterialCommunityIcons
+                  name="trophy"
+                  size={getIconSize(32)}
+                  color={Theme.colors.secondary}
+                />
+                <Text variant="h4" weight="600">
+                  Recompense
+                </Text>
+              </Row>
+              <Text variant="h2" weight="700" color={Theme.colors.secondary}>
+                {Math.floor(rewardBalance.available / 60) > 0
+                  ? `${Math.floor(rewardBalance.available / 60)}h ${rewardBalance.available % 60}m`
+                  : `${rewardBalance.available}m`}
+              </Text>
+            </Row>
+            <Text variant="body2" color={Theme.colors.textSecondary}>
+              Timp disponibil pentru aplicații
+            </Text>
+            {rewardBalance.available > 0 && (
+              <View style={{
+                padding: Theme.spacing.sm,
+                backgroundColor: Theme.colors.secondary + '20',
+                borderRadius: Theme.borderRadius.md,
+              }}>
+                <Text variant="caption" color={Theme.colors.secondary} align="center">
+                  💡 Vizitează tab-ul Recompense pentru a aloca timpul către aplicații
+                </Text>
+              </View>
+            )}
+          </Column>
+        </Card>
+      )}
 
       {/* App Usage Card */}
       <Card elevation="md">
