@@ -98,3 +98,47 @@ export interface RegisterCredentials {
   password: string;
   name: string;
 }
+
+// Reward System types
+export interface RewardBalance {
+  totalEarned: number; // Total time ever earned
+  available: number; // Available time to spend
+  spent: number; // Time already allocated to apps
+  pendingAllocation: number; // Time waiting to be allocated
+}
+
+export interface RewardTransaction {
+  id: string;
+  type: 'earned' | 'spent' | 'bonus';
+  amount: number; // minutes
+  reason: string;
+  taskId?: string;
+  appId?: string;
+  timestamp: Date;
+  description: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  requirement: number; // e.g., tasks completed, time earned
+  type: 'tasks_completed' | 'time_earned' | 'streak' | 'category_master';
+  category?: TaskCategory;
+  unlocked: boolean;
+  unlockedAt?: Date;
+  rewardBonus?: number; // Bonus minutes for unlocking
+}
+
+export interface StreakBonus {
+  days: number;
+  multiplier: number; // e.g., 1.5 for 50% bonus
+  description: string;
+}
+
+export interface RewardAllocation {
+  appId: string;
+  minutes: number;
+  allocatedAt: Date;
+}

@@ -2,6 +2,7 @@ import { MindfulTask, CompletedTask, TaskCategory } from '../types';
 import { PREDEFINED_TASKS } from '../constants/tasks';
 import StorageService from './StorageService';
 import TimeLimitService from './TimeLimitService';
+import RewardService from './RewardService';
 
 class TaskService {
   /**
@@ -28,14 +29,20 @@ class TaskService {
     task: MindfulTask,
     photoUri?: string,
     notes?: string
-  ): Promise<CompletedTask> {
+  ): Promise<{ completedTask: CompletedTask; reward: { finalAmount: number; bonusApplied: number } }> {
+    // Update streak first (before adding rewards)
+    await this.updateStreak();
+
+    // Add earned time with RewardService (includes streak bonus)
+    const reward = await RewardService.addEarnedTime(task.timeReward, task, true);
+
     // Create completed task record
     const completedTask: CompletedTask = {
       id: `${task.id}-${Date.now()}`,
       taskId: task.id,
       completedAt: new Date(),
       photoUri,
-      timeEarned: task.timeReward,
+      timeEarned: reward.finalAmount, // Use final amount including bonuses
       notes,
     };
 
@@ -46,17 +53,14 @@ class TaskService {
     const stats = await StorageService.getUserStats();
     await StorageService.updateUserStats({
       totalTasksCompleted: stats.totalTasksCompleted + 1,
-      totalTimeEarned: stats.totalTimeEarned + task.timeReward,
+      totalTimeEarned: stats.totalTimeEarned + reward.finalAmount,
       tasksCompletedToday: stats.tasksCompletedToday + 1,
     });
 
-    // Distribute earned time to apps
-    await TimeLimitService.distributeEarnedTime(task.timeReward);
+    // Distribute earned time to apps (use final amount with bonuses)
+    await TimeLimitService.distributeEarnedTime(reward.finalAmount);
 
-    // Update streak
-    await this.updateStreak();
-
-    return completedTask;
+    return { completedTask, reward };
   }
 
   /**
