@@ -22,10 +22,14 @@ export const colors = {
   textLight: '#FFFFFF',
   textSecondary: '#757575',
 
+  // UI elements
+  border: '#E0E0E0',
+  disabled: '#BDBDBD',
+
   // App status colors
   blocked: '#F44336',
   active: '#4CAF50',
-  warning: '#FFC107',
+  warningStatus: '#FFC107',
 
   // Task category colors
   outdoor: '#4CAF50',

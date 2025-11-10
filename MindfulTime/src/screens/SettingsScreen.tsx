@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Switch, Button, TextInput, List, Divider } from 'react-native-paper';
+import { Text, Card, Switch, Button, TextInput, List, Divider, Avatar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import StorageService from '../services/StorageService';
+import { useAuth } from '../context/useAuth';
 import { AppSettings } from '../types';
 
 const SettingsScreen: React.FC = () => {
+  const { user, logout } = useAuth();
   const [settings, setSettings] = useState<AppSettings>({
     notificationsEnabled: true,
     strictMode: false,
@@ -63,8 +65,47 @@ const SettingsScreen: React.FC = () => {
     );
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Ești sigur că vrei să te deconectezi?',
+      [
+        { text: 'Anulează', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
+      {/* User Profile Section */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.profileContainer}>
+            <View style={styles.avatarContainer}>
+              <Text style={styles.avatarEmoji}>{user?.avatar || '👤'}</Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text variant="titleLarge" style={styles.userName}>
+                {user?.name}
+              </Text>
+              <Text variant="bodyMedium" style={styles.userEmail}>
+                {user?.email}
+              </Text>
+              <Text variant="bodySmall" style={styles.memberSince}>
+                Membru din {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('ro-RO') : '-'}
+              </Text>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
+
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -154,6 +195,24 @@ const SettingsScreen: React.FC = () => {
         </Card.Content>
       </Card>
 
+      {/* Account Section */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Cont
+          </Text>
+          <Button
+            mode="contained"
+            onPress={handleLogout}
+            icon="logout"
+            buttonColor={colors.primary}
+            style={styles.logoutButton}
+          >
+            Logout
+          </Button>
+        </Card.Content>
+      </Card>
+
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -186,6 +245,38 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     elevation: 4,
   },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  avatarEmoji: {
+    fontSize: 40,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  userEmail: {
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  memberSince: {
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
@@ -204,6 +295,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   saveButton: {
+    marginTop: 8,
+  },
+  logoutButton: {
     marginTop: 8,
   },
   dangerButton: {
