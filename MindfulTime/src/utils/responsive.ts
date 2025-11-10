@@ -138,7 +138,6 @@ export const getResponsiveIconSize = (baseSize: number): number => {
  * Device info
  */
 export const DeviceInfo = {
-  isIOS: Platform.OS === 'ios',
   isAndroid: Platform.OS === 'android',
   isSmall: isSmallDevice(),
   isMedium: isMediumDevice(),

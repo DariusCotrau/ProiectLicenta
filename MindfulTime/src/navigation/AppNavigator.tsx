@@ -74,14 +74,14 @@ const MainTabNavigator: React.FC = () => {
             fontSize: 18,
           },
 
-          // Tab bar styling - platform specific
+          // Tab bar styling
           tabBarStyle: {
             backgroundColor: Theme.colors.surface,
             borderTopWidth: 1,
             borderTopColor: Theme.colors.border,
-            paddingBottom: Platform.select({ ios: 20, android: 8 }),
+            paddingBottom: 8,
             paddingTop: 8,
-            height: Platform.select({ ios: 85, android: 65 }),
+            height: 65,
             ...Theme.shadows.md,
           },
 
