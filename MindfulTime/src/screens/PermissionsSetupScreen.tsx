@@ -78,9 +78,6 @@ const PermissionsSetupScreen: React.FC<PermissionsSetupScreenProps> = ({
     }
   };
 
-  const isAndroid = Platform.OS === 'android';
-  const isIOS = Platform.OS === 'ios';
-
   return (
     <ScrollView style={styles.container}>
       <Container padding>
@@ -105,10 +102,8 @@ const PermissionsSetupScreen: React.FC<PermissionsSetupScreenProps> = ({
 
         <Spacer size="xxl" />
 
-        {/* Step 1: Usage Stats (Android only) */}
-        {isAndroid && (
-          <>
-            <Card>
+        {/* Step 1: Usage Stats */}
+        <Card>
               <Column>
                 <Row align="center">
                   <View
@@ -203,97 +198,7 @@ const PermissionsSetupScreen: React.FC<PermissionsSetupScreenProps> = ({
               </Column>
             </Card>
 
-            <Spacer size="lg" />
-          </>
-        )}
-
-        {/* iOS Explanation */}
-        {isIOS && (
-          <>
-            <Card style={{ backgroundColor: Theme.colors.info + '10' }}>
-              <Column>
-                <Row align="center">
-                  <MaterialCommunityIcons
-                    name="information"
-                    size={32}
-                    color={Theme.colors.info}
-                  />
-                  <Spacer size="md" />
-                  <Text variant="h4" weight="600" style={{ flex: 1 }}>
-                    Limitări iOS
-                  </Text>
-                </Row>
-
-                <Spacer size="md" />
-
-                <Text variant="body2" color={Theme.colors.textSecondary}>
-                  Din cauza restricțiilor Apple, nu putem tracka automat timpul de
-                  utilizare al altor aplicații pe iOS.
-                </Text>
-
-                <Spacer size="md" />
-
-                <Text variant="body2" weight="600">
-                  Soluții alternative:
-                </Text>
-
-                <Spacer size="sm" />
-
-                <View style={styles.benefitsBox}>
-                  <Row align="flex-start">
-                    <MaterialCommunityIcons
-                      name="numeric-1-circle"
-                      size={20}
-                      color={Theme.colors.primary}
-                    />
-                    <Spacer size="sm" />
-                    <Text variant="body2" style={{ flex: 1 }}>
-                      <Text weight="600">Screen Time nativ:</Text> Folosește funcția
-                      built-in din iOS Settings
-                    </Text>
-                  </Row>
-                  <Spacer size="sm" />
-                  <Row align="flex-start">
-                    <MaterialCommunityIcons
-                      name="numeric-2-circle"
-                      size={20}
-                      color={Theme.colors.primary}
-                    />
-                    <Spacer size="sm" />
-                    <Text variant="body2" style={{ flex: 1 }}>
-                      <Text weight="600">Tracking manual:</Text> Introdu rapid timpul
-                      în MindfulTime
-                    </Text>
-                  </Row>
-                  <Spacer size="sm" />
-                  <Row align="flex-start">
-                    <MaterialCommunityIcons
-                      name="numeric-3-circle"
-                      size={20}
-                      color={Theme.colors.primary}
-                    />
-                    <Spacer size="sm" />
-                    <Text variant="body2" style={{ flex: 1 }}>
-                      <Text weight="600">Focus Modes:</Text> Activează Focus pentru
-                      a bloca distracții
-                    </Text>
-                  </Row>
-                </View>
-
-                <Spacer size="lg" />
-
-                <Button
-                  title="Deschide Screen Time Settings"
-                  onPress={() => PermissionService.openNativeScreenTime()}
-                  variant="outlined"
-                  fullWidth
-                />
-              </Column>
-            </Card>
-
-            <Spacer size="lg" />
-          </>
-        )}
+        <Spacer size="lg" />
 
         {/* Step 2: Notifications */}
         <Card>
@@ -301,7 +206,7 @@ const PermissionsSetupScreen: React.FC<PermissionsSetupScreenProps> = ({
             <Row align="center">
               <View style={styles.stepNumber}>
                 <Text variant="h3" weight="bold" color="#FFFFFF">
-                  {isAndroid ? '2' : '1'}
+                  2
                 </Text>
               </View>
               <Spacer size="md" />

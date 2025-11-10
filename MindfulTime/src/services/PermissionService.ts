@@ -11,23 +11,18 @@ const STORAGE_KEYS = {
  * PermissionService - Gestionează permisiunile pentru tracking-ul aplicațiilor
  *
  * IMPORTANT:
- * - Pe Android: Poate cere PACKAGE_USAGE_STATS pentru tracking
- * - Pe iOS: Nu există API pentru tracking-ul altor aplicații
+ * - Aplicația este Android-only
+ * - Poate cere PACKAGE_USAGE_STATS pentru tracking
  *
  * Limitări:
- * - Nicio platformă nu permite blocarea HARD a aplicațiilor
- * - iOS nu permite tracking-ul altor aplicații
+ * - Android nu permite blocarea HARD a aplicațiilor
  * - Android permite tracking dar nu blocking
  */
 class PermissionService {
   /**
-   * Verifică dacă aplicația are permisiunea de usage stats (doar Android)
+   * Verifică dacă aplicația are permisiunea de usage stats
    */
   async hasUsageStatsPermission(): Promise<boolean> {
-    if (Platform.OS !== 'android') {
-      return false;
-    }
-
     try {
       return await NativeUsageStatsService.hasPermission();
     } catch (error) {
@@ -37,21 +32,9 @@ class PermissionService {
   }
 
   /**
-   * Cere permisiunea de usage stats (deschide Settings pe Android)
+   * Cere permisiunea de usage stats (deschide Settings)
    */
   async requestUsageStatsPermission(): Promise<void> {
-    if (Platform.OS !== 'android') {
-      Alert.alert(
-        'Indisponibil pe iOS',
-        'Din cauza limitărilor iOS, nu putem tracka automat timpul de utilizare al altor aplicații.\n\n' +
-        'Sugestii:\n' +
-        '1. Folosește Screen Time nativ din Settings\n' +
-        '2. Introdu manual timpul în MindfulTime\n' +
-        '3. Folosește Focus Modes pentru limitarea accesului'
-      );
-      return;
-    }
-
     try {
       Alert.alert(
         'Permisiune Necesară',
@@ -93,7 +76,7 @@ class PermissionService {
    */
   async requestNotificationPermission(): Promise<boolean> {
     try {
-      // Pentru iOS 12+ și Android 13+
+      // Pentru Android 13+
       // const { Notifications } = require('expo-notifications');
       // const { status } = await Notifications.requestPermissionsAsync();
       // return status === 'granted';
@@ -169,80 +152,31 @@ class PermissionService {
     hasNotifications: boolean;
     hasRequestedBefore: boolean;
     isTrackingEnabled: boolean;
-    platform: 'android' | 'ios' | 'web';
+    platform: 'android';
   }> {
     return {
       hasUsageStats: await this.hasUsageStatsPermission(),
       hasNotifications: true, // Placeholder
       hasRequestedBefore: await this.hasRequestedPermissions(),
       isTrackingEnabled: await this.isTrackingEnabled(),
-      platform: Platform.OS as 'android' | 'ios' | 'web',
+      platform: 'android',
     };
-  }
-
-  /**
-   * Ghidare către Screen Time nativ (iOS)
-   */
-  async openNativeScreenTime(): Promise<void> {
-    if (Platform.OS === 'ios') {
-      Alert.alert(
-        'Screen Time',
-        'Pentru a configura limite de timp pe iOS:\n\n' +
-        '1. Deschide Settings\n' +
-        '2. Mergi la Screen Time\n' +
-        '3. Activează Screen Time dacă nu este activat\n' +
-        '4. Setează "App Limits" pentru aplicațiile dorite\n\n' +
-        'MindfulTime va complementa aceste setări cu tracking manual și gamification.',
-        [
-          {
-            text: 'OK',
-            onPress: () => Linking.openSettings(),
-          },
-          {
-            text: 'Anulează',
-            style: 'cancel',
-          },
-        ]
-      );
-    } else {
-      Alert.alert(
-        'Informație',
-        'Această funcționalitate este disponibilă doar pe iOS.'
-      );
-    }
   }
 
   /**
    * Afișează explicație despre limitările platformei
    */
   async showPlatformLimitations(): Promise<void> {
-    const platform = Platform.OS;
-    let message = '';
-
-    if (platform === 'ios') {
-      message =
-        '📱 Limitări iOS:\n\n' +
-        '• iOS nu permite aplicațiilor terțe să trackeze timpul de utilizare al altor aplicații\n' +
-        '• Nu putem bloca automat alte aplicații\n\n' +
-        '✅ Ce oferim în schimb:\n' +
-        '• Tracking manual simplu și rapid\n' +
-        '• Notificări pentru reminder-uri\n' +
-        '• Gamification (streaks, achievements)\n' +
-        '• Integrare cu Screen Time nativ\n' +
-        '• Widget cu statistici\n\n' +
-        'Aceste metode s-au dovedit la fel de eficiente ca blocarea hard!';
-    } else if (platform === 'android') {
-      message =
-        '🤖 Funcționalități Android:\n\n' +
-        '• Tracking automat al timpului de utilizare\n' +
-        '• Notificări când te apropii de limită\n' +
-        '• "Gentle blocking" cu overlay-uri\n' +
-        '• Widget cu statistici live\n\n' +
-        '⚠️ Limitare:\n' +
-        '• Nu putem bloca COMPLET o aplicație (ar necesita acces root)\n' +
-        '• Folosim "friction" psihologic în schimb\n\n' +
-        'Acest approach funcționează mai bine decât blocarea hard!';
-    }
+    const message =
+      '🤖 Funcționalități Android:\n\n' +
+      '• Tracking automat al timpului de utilizare\n' +
+      '• Notificări când te apropii de limită\n' +
+      '• "Gentle blocking" cu overlay-uri\n' +
+      '• Widget cu statistici live\n\n' +
+      '⚠️ Limitare:\n' +
+      '• Nu putem bloca COMPLET o aplicație (ar necesita acces root)\n' +
+      '• Folosim "friction" psihologic în schimb\n\n' +
+      'Acest approach funcționează mai bine decât blocarea hard!';
 
     Alert.alert('Cum Funcționează MindfulTime', message);
   }
@@ -261,13 +195,8 @@ class PermissionService {
       // Afișează screen de onboarding cu explicații
       await this.showPlatformLimitations();
 
-      // Pe Android, cere usage stats
-      if (Platform.OS === 'android') {
-        await this.requestUsageStatsPermission();
-      } else {
-        // Pe iOS, ghidează către Screen Time
-        await this.openNativeScreenTime();
-      }
+      // Cere usage stats
+      await this.requestUsageStatsPermission();
 
       // Cere permisiunea de notificări
       await this.requestNotificationPermission();

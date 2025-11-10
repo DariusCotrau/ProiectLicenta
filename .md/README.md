@@ -2,7 +2,7 @@
 
 ## Descriere
 
-MindfulTime este o aplicație mobilă cross-platform (Android & iOS) care ajută utilizatorii să reducă timpul petrecut pe aplicațiile de socializare și alte aplicații distractive, prin încurajarea unor activități mindfulness în lumea reală.
+MindfulTime este o aplicație mobilă pentru Android care ajută utilizatorii să reducă timpul petrecut pe aplicațiile de socializare și alte aplicații distractive, prin încurajarea unor activități mindfulness în lumea reală.
 
 ### Caracteristici principale:
 
@@ -32,7 +32,7 @@ MindfulTime/
 │   ├── constants/           # Constante (culori, taskuri predefinite)
 │   ├── hooks/              # Custom hooks
 │   ├── navigation/         # Configurare navigare
-│   ├── native-modules/     # Module native pentru Android/iOS
+│   ├── native-modules/     # Module native pentru Android
 │   ├── screens/            # Ecrane principale
 │   │   ├── HomeScreen.tsx
 │   │   ├── TasksScreen.tsx
@@ -57,8 +57,7 @@ MindfulTime/
 - Node.js (v16 sau mai nou)
 - npm sau yarn
 - Expo CLI
-- Pentru Android: Android Studio
-- Pentru iOS: Xcode (doar macOS)
+- Android Studio
 
 ### Pași de instalare
 
@@ -83,11 +82,6 @@ npm start
 Pentru Android:
 ```bash
 npm run android
-```
-
-Pentru iOS (doar macOS):
-```bash
-npm run ios
 ```
 
 Pentru Web (pentru testare):
@@ -160,11 +154,6 @@ Pentru funcționalitatea completă de monitorizare și blocare a aplicațiilor, 
 - **UsageStatsManager API** pentru monitorizare
 - **AccessibilityService** pentru blocare (opțional)
 
-### iOS
-- **Screen Time API** (iOS 14+)
-- **DeviceActivity Framework**
-- **Family Controls** pentru blocare
-
 **Documentație detaliată**: Vezi [src/native-modules/README.md](src/native-modules/README.md)
 
 ## Permisiuni Necesare
@@ -174,11 +163,6 @@ Pentru funcționalitatea completă de monitorizare și blocare a aplicațiilor, 
 - `QUERY_ALL_PACKAGES` - Pentru listarea aplicațiilor instalate
 - `CAMERA` - Pentru fotografiile de verificare
 - `READ_EXTERNAL_STORAGE` - Pentru salvarea fotografiilor
-
-### iOS
-- Camera access - Pentru fotografii
-- Photo Library access - Pentru salvarea fotografiilor
-- Family Controls - Pentru Screen Time API (opțional)
 
 ## Testare
 
@@ -204,16 +188,11 @@ Aplicația necesită testare pe dispozitive fizice pentru:
 eas build --platform android
 ```
 
-### iOS (IPA)
-```bash
-eas build --platform ios
-```
-
 **Notă**: Necesită configurare Expo Application Services (EAS)
 
 ## Roadmap / Funcționalități Viitoare
 
-- [ ] Implementare completă module native Android/iOS
+- [ ] Implementare completă module native Android
 - [ ] Sistem de notificări (avertizări când se apropie limita)
 - [ ] Activități personalizate (utilizatorii pot adăuga propriile activități)
 - [ ] Gamification (badges, achievements)
@@ -227,13 +206,11 @@ eas build --platform ios
 ## Provocări Tehnice
 
 ### 1. Monitorizare Aplicații
-- **Android**: Necesită permisiuni speciale (Usage Stats)
-- **iOS**: Limitări stricte ale Screen Time API
+- Necesită permisiuni speciale (Usage Stats)
 - **Soluție curentă**: Implementare demo pentru UI, module native în dezvoltare
 
 ### 2. Blocarea Aplicațiilor
-- **Android**: Necesită Accessibility Service (problematic pentru store approval)
-- **iOS**: Posibil doar prin Screen Time API cu limitări
+- Necesită Accessibility Service (problematic pentru store approval)
 - **Alternativă**: Overlay-uri și notificări în loc de blocare hard
 
 ### 3. Verificare Fotografii
@@ -278,7 +255,7 @@ Expo oferă hot reload automat - modificările în cod se reflectă imediat în 
 ### Debug
 
 - Shake device pentru debug menu
-- `Ctrl+M` (Android) sau `Cmd+D` (iOS) pentru dev menu
+- `Ctrl+M` pentru dev menu
 - React DevTools pentru inspectarea componentelor
 
 ### Logs
@@ -289,9 +266,6 @@ npx expo start
 
 # Android logs
 adb logcat
-
-# iOS logs
-xcrun simctl spawn booted log stream
 ```
 
 ## Arhitectură

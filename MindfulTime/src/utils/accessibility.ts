@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 
 // Minimum touch target sizes (in pixels)
 export const TOUCH_TARGET = {
-  MIN_SIZE: Platform.select({ ios: 44, android: 48, default: 44 }),
+  MIN_SIZE: 48,
   RECOMMENDED_SIZE: 48,
   LARGE_SIZE: 56,
 };

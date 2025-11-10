@@ -174,47 +174,20 @@ export const Transitions = {
  * Platform-specific adjustments
  */
 export const PlatformUtils = {
-  isIOS: Platform.OS === 'ios',
   isAndroid: Platform.OS === 'android',
 
   // Status bar height (use SafeAreaView for proper handling)
-  statusBarHeight: Platform.select({
-    ios: 44,
-    android: 0,
-  }),
+  statusBarHeight: 0,
 
   // Navigation bar height
-  navBarHeight: Platform.select({
-    ios: 44,
-    android: 56,
-  }),
+  navBarHeight: 56,
 
   // Tab bar height
-  tabBarHeight: Platform.select({
-    ios: 49,
-    android: 60,
-  }),
+  tabBarHeight: 60,
 
-  // Elevation vs shadow
+  // Android elevation
   getShadow: (elevation: number) => {
-    if (Platform.OS === 'android') {
-      return { elevation };
-    }
-
-    // iOS shadow mapping based on elevation
-    const shadowOpacity = Math.min(elevation * 0.02, 0.3);
-    const shadowRadius = Math.min(elevation * 0.5, 10);
-    const shadowOffset = {
-      width: 0,
-      height: Math.min(elevation * 0.25, 8)
-    };
-
-    return {
-      shadowColor: '#000',
-      shadowOffset,
-      shadowOpacity,
-      shadowRadius,
-    };
+    return { elevation };
   },
 } as const;
 
