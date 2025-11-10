@@ -37,9 +37,19 @@ yarn-error.*
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+# NOTE: We keep android/ios in git because we have custom native modules
+# /ios
+# /android
 
-# Documentation - exclude all .md files except README.md
+# Build outputs in native folders
+/android/app/build
+/android/build
+/android/.gradle
+/ios/build
+/ios/Pods
+
+# Documentation - exclude all .md files except README.md and guides
 *.md
 !README.md
+!NATIVE_MODULE_GUIDE.md
+!IMPLEMENTATION_GUIDE.md
