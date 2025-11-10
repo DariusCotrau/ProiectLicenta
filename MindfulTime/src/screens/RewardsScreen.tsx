@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, StyleSheet, RefreshControl } from 'react-native';
+import { ScrollView, View, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import RewardService from '../services/RewardService';
 import StorageService from '../services/StorageService';
 import { Theme } from '../constants/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import {
+  formatTimeForAccessibility,
+  getAccessibilityLabel,
+  getAccessibilityHint,
+} from '../utils/accessibility';
 import {
   Container,
   Card,
@@ -28,18 +33,28 @@ const RewardsScreen: React.FC = () => {
   const [currentStreakBonus, setCurrentStreakBonus] = useState<StreakBonus | null>(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { isTablet, getIconSize } = useResponsive();
 
   const loadData = async () => {
-    const summary = await RewardService.getRewardsSummary();
-    setBalance(summary.balance);
-    setTransactions(summary.recentTransactions);
-    setAchievements(await RewardService.getAchievements());
-    setCurrentStreakBonus(summary.currentStreakBonus);
+    try {
+      setError(null);
+      const summary = await RewardService.getRewardsSummary();
+      setBalance(summary.balance);
+      setTransactions(summary.recentTransactions);
+      setAchievements(await RewardService.getAchievements());
+      setCurrentStreakBonus(summary.currentStreakBonus);
 
-    const stats = await StorageService.getUserStats();
-    setCurrentStreak(stats.currentStreak);
+      const stats = await StorageService.getUserStats();
+      setCurrentStreak(stats.currentStreak);
+    } catch (err) {
+      setError('Nu s-au putut încărca datele. Te rog încearcă din nou.');
+      console.error('Error loading rewards data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -90,10 +105,66 @@ const RewardsScreen: React.FC = () => {
   const unlockedAchievements = achievements.filter(a => a.unlocked);
   const lockedAchievements = achievements.filter(a => !a.unlocked);
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator
+          size="large"
+          color={Theme.colors.primary}
+          accessible={true}
+          accessibilityLabel="Se încarcă recompensele"
+        />
+        <Spacer size="md" />
+        <Text variant="body1" color={Theme.colors.textSecondary}>
+          Se încarcă datele...
+        </Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <MaterialCommunityIcons
+          name="alert-circle-outline"
+          size={getIconSize(64)}
+          color={Theme.colors.error}
+        />
+        <Spacer size="md" />
+        <Text variant="h4" weight="600" align="center">
+          Eroare
+        </Text>
+        <Spacer size="sm" />
+        <Text variant="body2" color={Theme.colors.textSecondary} align="center">
+          {error}
+        </Text>
+        <Spacer size="lg" />
+        <Button
+          title="Încearcă din nou"
+          onPress={loadData}
+          variant="primary"
+          accessibilityLabel="Încearcă să încarci din nou datele"
+          accessibilityHint="Apasă pentru a reîncărca informațiile despre recompense"
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          accessibilityLabel="Reîmprospătează lista de recompense"
+        />
+      }
+      accessible={true}
+      accessibilityLabel="Ecran recompense"
+      accessibilityHint="Derulează pentru a vedea balantă, achievement-uri și istoric"
     >
       <Container padding>
         <Spacer size="md" />
@@ -104,12 +175,24 @@ const RewardsScreen: React.FC = () => {
             name="trophy"
             size={isTablet ? 100 : 70}
             color={Theme.colors.primary}
+            accessible={false}
           />
           <Spacer size="sm" />
-          <Text variant="h2" weight="bold" align="center">
+          <Text
+            variant="h2"
+            weight="bold"
+            align="center"
+            accessible={true}
+            accessibilityRole="header"
+          >
             Recompense
           </Text>
-          <Text variant="body2" color={Theme.colors.textSecondary} align="center">
+          <Text
+            variant="body2"
+            color={Theme.colors.textSecondary}
+            align="center"
+            accessible={true}
+          >
             Câștigă timp pentru aplicații completând activități
           </Text>
         </Column>
@@ -343,9 +426,22 @@ const RewardsScreen: React.FC = () => {
             <Spacer size="md" />
 
             {transactions.length === 0 ? (
-              <Text variant="body2" color={Theme.colors.textSecondary} align="center">
-                Nicio tranzacție încă
-              </Text>
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={getIconSize(48)}
+                  color={Theme.colors.textSecondary}
+                  accessible={false}
+                />
+                <Spacer size="md" />
+                <Text variant="body2" color={Theme.colors.textSecondary} align="center">
+                  Nicio tranzacție încă
+                </Text>
+                <Spacer size="sm" />
+                <Text variant="caption" color={Theme.colors.textSecondary} align="center">
+                  Completează activități pentru a câștiga timp{'\n'}și a vedea tranzacții aici
+                </Text>
+              </View>
             ) : (
               transactions.slice(0, 10).map((transaction) => (
                 <View key={transaction.id}>
@@ -397,6 +493,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.background,
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Theme.spacing.xl,
+    backgroundColor: Theme.colors.background,
+  },
   divider: {
     width: 1,
     height: '100%',
@@ -412,10 +515,15 @@ const styles = StyleSheet.create({
   achievementItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Theme.spacing.sm,
+    padding: Theme.spacing.md,
     backgroundColor: Theme.colors.surface,
     borderRadius: Theme.borderRadius.md,
     ...Theme.shadows.sm,
+    minHeight: 56, // Minimum touch target size
+  },
+  emptyState: {
+    padding: Theme.spacing.xl,
+    alignItems: 'center',
   },
 });
 

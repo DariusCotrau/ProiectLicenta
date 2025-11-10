@@ -137,13 +137,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="email"
+                textContentType="emailAddress"
                 error={!!emailError}
                 disabled={isLoading}
                 left={<TextInput.Icon icon="email" />}
                 style={styles.input}
+                accessible={true}
+                accessibilityLabel="Câmp email"
+                accessibilityHint="Introdu adresa ta de email"
+                accessibilityState={{ disabled: isLoading }}
               />
               {emailError ? (
-                <Text variant="caption" color={Theme.colors.error} style={styles.errorText}>
+                <Text
+                  variant="caption"
+                  color={Theme.colors.error}
+                  style={styles.errorText}
+                  accessible={true}
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                >
                   {emailError}
                 </Text>
               ) : null}
@@ -162,6 +175,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 mode="outlined"
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
+                autoComplete="password"
+                textContentType="password"
                 error={!!passwordError}
                 disabled={isLoading}
                 left={<TextInput.Icon icon="lock" />}
@@ -169,12 +184,25 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   <TextInput.Icon
                     icon={showPassword ? 'eye-off' : 'eye'}
                     onPress={() => setShowPassword(!showPassword)}
+                    accessibilityLabel={showPassword ? 'Ascunde parola' : 'Arată parola'}
+                    accessibilityHint="Apasă pentru a comuta vizibilitatea parolei"
                   />
                 }
                 style={styles.input}
+                accessible={true}
+                accessibilityLabel="Câmp parolă"
+                accessibilityHint="Introdu parola ta"
+                accessibilityState={{ disabled: isLoading }}
               />
               {passwordError ? (
-                <Text variant="caption" color={Theme.colors.error} style={styles.errorText}>
+                <Text
+                  variant="caption"
+                  color={Theme.colors.error}
+                  style={styles.errorText}
+                  accessible={true}
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="polite"
+                >
                   {passwordError}
                 </Text>
               ) : null}
@@ -190,6 +218,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 loading={isLoading}
                 disabled={isLoading}
                 fullWidth
+                accessibilityLabel="Autentifică-te"
+                accessibilityHint="Apasă pentru a te autentifica cu emailul și parola"
+                accessibilityState={{
+                  disabled: isLoading,
+                  busy: isLoading,
+                }}
               />
             </Column>
           </Card>

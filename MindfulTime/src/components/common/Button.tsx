@@ -6,6 +6,8 @@ import {
   StyleProp,
   ActivityIndicator,
   View,
+  AccessibilityState,
+  AccessibilityRole,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Theme } from '../../constants/theme';
@@ -23,6 +25,11 @@ interface ButtonProps {
   iconPosition?: 'left' | 'right';
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
+  // Accessibility props
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
 }
 
 /**
@@ -39,6 +46,10 @@ export const Button: React.FC<ButtonProps> = ({
   iconPosition = 'left',
   style,
   fullWidth = false,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole = 'button',
+  accessibilityState,
 }) => {
   const { getIconSize, isSmall } = useResponsive();
 
@@ -108,6 +119,15 @@ export const Button: React.FC<ButtonProps> = ({
         color: variant === 'text' || variant === 'outlined'
           ? Theme.colors.primary + '20'
           : '#FFFFFF40',
+      }}
+      accessible={true}
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={{
+        disabled: disabled || loading,
+        busy: loading,
+        ...accessibilityState,
       }}
     >
       {loading ? (

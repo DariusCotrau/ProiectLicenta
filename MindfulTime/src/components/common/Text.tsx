@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text as RNText, StyleSheet, TextStyle, StyleProp } from 'react-native';
+import { Text as RNText, StyleSheet, TextStyle, StyleProp, AccessibilityRole } from 'react-native';
 import { Theme } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 
@@ -11,6 +11,12 @@ interface TextProps {
   align?: 'left' | 'center' | 'right' | 'justify';
   numberOfLines?: number;
   weight?: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+  // Accessibility props
+  accessible?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLiveRegion?: 'none' | 'polite' | 'assertive';
 }
 
 /**
@@ -25,6 +31,11 @@ export const Text: React.FC<TextProps> = ({
   align = 'left',
   numberOfLines,
   weight,
+  accessible,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole,
+  accessibilityLiveRegion,
 }) => {
   const { getFontSize, isSmall, isTablet } = useResponsive();
 
@@ -43,6 +54,11 @@ export const Text: React.FC<TextProps> = ({
       style={[textStyle, style]}
       numberOfLines={numberOfLines}
       allowFontScaling={false} // Pentru control consistent al dimensiunii
+      accessible={accessible}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole}
+      accessibilityLiveRegion={accessibilityLiveRegion}
     >
       {children}
     </RNText>
