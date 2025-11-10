@@ -4,6 +4,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/context/AuthContext';
 import { colors } from './src/constants/colors';
 import { initializeDemoData } from './src/utils/initializeDemoData';
 
@@ -43,8 +44,10 @@ export default function App() {
           accent: colors.secondary,
         },
       }}>
-        <StatusBar style="light" />
-        <AppNavigator />
+        <AuthProvider>
+          <StatusBar style="light" />
+          <AppNavigator />
+        </AuthProvider>
       </PaperProvider>
     </SafeAreaProvider>
   );

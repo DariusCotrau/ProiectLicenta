@@ -71,3 +71,30 @@ export interface AppSettings {
   dailyGoal: number; // minutes of mindful activities
   theme: 'light' | 'dark' | 'auto';
 }
+
+// Authentication types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  avatar?: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  name: string;
+}

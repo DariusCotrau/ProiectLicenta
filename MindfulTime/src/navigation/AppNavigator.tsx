@@ -1,9 +1,11 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Theme } from '../constants/theme';
+import { useAuth } from '../context/useAuth';
 
 // Import screens
 import HomeScreen from '../screens/HomeScreen';
@@ -11,6 +13,8 @@ import TasksScreen from '../screens/TasksScreen';
 import AppsScreen from '../screens/AppsScreen';
 import StatsScreen from '../screens/StatsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -20,16 +24,37 @@ export type RootTabParamList = {
   Settings: undefined;
 };
 
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};
+
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 /**
- * AppNavigator cu design responsive cross-platform
- * Tab bar se adaptează automat la iOS și Android
+ * Auth Navigator - Stack navigator for login/register screens
  */
-const AppNavigator: React.FC = () => {
+const AuthNavigator: React.FC = () => {
   return (
-    <NavigationContainer>
-      <Tab.Navigator
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+  );
+};
+
+/**
+ * Main Tab Navigator - Bottom tab navigation for authenticated users
+ */
+const MainTabNavigator: React.FC = () => {
+  return (
+    <Tab.Navigator
         screenOptions={{
           // Culori
           tabBarActiveTintColor: Theme.colors.primary,
@@ -142,6 +167,35 @@ const AppNavigator: React.FC = () => {
           }}
         />
       </Tab.Navigator>
+  );
+};
+
+/**
+ * Root App Navigator - Switches between Auth and Main navigation based on auth state
+ * Tab bar se adaptează automat la iOS și Android
+ */
+const AppNavigator: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: Theme.colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={Theme.colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };

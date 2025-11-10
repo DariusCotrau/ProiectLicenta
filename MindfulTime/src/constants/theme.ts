@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { Colors } from './colors';
+import { colors } from './colors';
 
 /**
  * Theme configuration pentru design consistent cross-platform
@@ -264,7 +264,7 @@ export const ComponentSizes = {
  * Complete theme object
  */
 export const Theme = {
-  colors: Colors,
+  colors: colors,
   spacing: Spacing,
   borderRadius: BorderRadius,
   typography: Typography,
