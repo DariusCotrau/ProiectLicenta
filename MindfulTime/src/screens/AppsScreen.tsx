@@ -1,25 +1,129 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, TextInput, Portal, Modal, Chip } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert, RefreshControl, ActivityIndicator } from 'react-native';
+import { Text, Card, Button, TextInput, Portal, Modal, Chip, Banner } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';
 import { App, AppCategory } from '../types';
 import StorageService from '../services/StorageService';
 import TimeLimitService from '../services/TimeLimitService';
+import NativeUsageStatsService from '../services/NativeUsageStatsService.android';
+import { useFocusEffect } from '@react-navigation/native';
 
 const AppsScreen: React.FC = () => {
   const [apps, setApps] = useState<App[]>([]);
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
   const [newLimit, setNewLimit] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
+  const [isCheckingPermission, setIsCheckingPermission] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
 
   useEffect(() => {
     loadApps();
+    checkPermissions();
   }, []);
+
+  // Verifică permisiunile când ecranul devine focalizat
+  useFocusEffect(
+    React.useCallback(() => {
+      checkPermissions();
+      if (hasPermission) {
+        syncUsageData();
+      }
+    }, [hasPermission])
+  );
 
   const loadApps = async () => {
     const userApps = await StorageService.getApps();
     setApps(userApps);
+  };
+
+  const checkPermissions = async () => {
+    setIsCheckingPermission(true);
+    try {
+      if (!NativeUsageStatsService.isAvailable()) {
+        console.log('NativeUsageStatsService not available');
+        setHasPermission(false);
+        setShowPermissionBanner(false);
+        return;
+      }
+
+      const permission = await NativeUsageStatsService.hasPermission();
+      setHasPermission(permission);
+      setShowPermissionBanner(!permission);
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+      setHasPermission(false);
+    } finally {
+      setIsCheckingPermission(false);
+    }
+  };
+
+  const requestPermission = async () => {
+    try {
+      await NativeUsageStatsService.requestPermission();
+      Alert.alert(
+        'Permisiune necesară',
+        'Te rog să acorzi permisiunea "Usage Access" pentru MindfulTime din lista de aplicații care se va deschide.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+      Alert.alert('Eroare', 'Nu s-a putut deschide setările pentru permisiuni');
+    }
+  };
+
+  const syncUsageData = async () => {
+    if (!hasPermission || isSyncing) return;
+
+    setIsSyncing(true);
+    try {
+      // Obține datele de utilizare pentru ziua curentă
+      const usageStats = await NativeUsageStatsService.getTodayUsageStats();
+
+      if (usageStats.length === 0) {
+        console.log('No usage stats available');
+        setIsSyncing(false);
+        return;
+      }
+
+      // Actualizează aplicațiile existente cu datele reale de utilizare
+      const updatedApps = [...apps];
+      let hasChanges = false;
+
+      for (const app of updatedApps) {
+        const stat = usageStats.find(s => s.packageName === app.packageName);
+        if (stat) {
+          // Convertește milliseconds în minute
+          const usedTimeInMinutes = Math.round(stat.totalTimeInForeground / (1000 * 60));
+          if (app.usedTime !== usedTimeInMinutes) {
+            app.usedTime = usedTimeInMinutes;
+            app.isBlocked = usedTimeInMinutes >= app.dailyLimit;
+            hasChanges = true;
+
+            // Salvează actualizarea în storage
+            await StorageService.updateApp(app.id, {
+              usedTime: usedTimeInMinutes,
+              isBlocked: app.isBlocked,
+            });
+          }
+        }
+      }
+
+      if (hasChanges) {
+        setApps(updatedApps);
+      }
+    } catch (error) {
+      console.error('Error syncing usage data:', error);
+      Alert.alert('Eroare', 'Nu s-au putut sincroniza datele de utilizare');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await Promise.all([loadApps(), syncUsageData()]);
   };
 
   const handleEditLimit = (app: App) => {
@@ -74,7 +178,37 @@ const AppsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.appsList}>
+      {showPermissionBanner && (
+        <Banner
+          visible={showPermissionBanner}
+          actions={[
+            {
+              label: 'Acordă permisiune',
+              onPress: requestPermission,
+            },
+            {
+              label: 'Închide',
+              onPress: () => setShowPermissionBanner(false),
+            },
+          ]}
+          icon={({ size }) => (
+            <MaterialCommunityIcons name="shield-alert" size={size} color={colors.warning} />
+          )}
+        >
+          Pentru a sincroniza datele de utilizare reale de pe telefon, acordă permisiunea "Usage Access".
+        </Banner>
+      )}
+
+      <ScrollView
+        style={styles.appsList}
+        refreshControl={
+          <RefreshControl
+            refreshing={isSyncing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <Card style={styles.infoCard}>
           <Card.Content>
             <View style={styles.infoHeader}>
@@ -86,6 +220,30 @@ const AppsScreen: React.FC = () => {
             <Text variant="bodySmall" style={styles.infoText}>
               Setează limite de timp pentru aplicațiile tale favorite. Când atingi limita, vei putea câștiga mai mult timp completând activități mindfulness.
             </Text>
+
+            {hasPermission && (
+              <View style={styles.syncContainer}>
+                <View style={styles.syncInfo}>
+                  <MaterialCommunityIcons
+                    name="check-circle"
+                    size={16}
+                    color={colors.success}
+                  />
+                  <Text variant="bodySmall" style={styles.syncText}>
+                    Date sincronizate cu telefon
+                  </Text>
+                </View>
+                <Button
+                  mode="text"
+                  onPress={syncUsageData}
+                  loading={isSyncing}
+                  disabled={isSyncing}
+                  compact
+                >
+                  {isSyncing ? 'Sincronizare...' : 'Sincronizează'}
+                </Button>
+              </View>
+            )}
           </Card.Content>
         </Card>
 
@@ -253,6 +411,21 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: colors.textSecondary,
+  },
+  syncContainer: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  syncInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  syncText: {
+    color: colors.success,
+    fontWeight: '600',
   },
   appCard: {
     marginBottom: 16,
