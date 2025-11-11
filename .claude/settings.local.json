@@ -21,7 +21,12 @@
       "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
       "Bash(cmd.exe /c \"set JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot && gradlew.bat tasks\")",
       "Bash(JAVA_HOME=\"/c/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" ./gradlew.bat:*)",
-      "Bash(./gradlew.bat:*)"
+      "Bash(./gradlew.bat:*)",
+      "Bash(npx expo config:*)",
+      "Bash(echo:*)",
+      "Bash(adb devices:*)",
+      "Bash(\"C:\\Users\\Darius\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe\" devices)",
+      "Bash(npx expo run:android)"
     ],
     "deny": [],
     "ask": []
