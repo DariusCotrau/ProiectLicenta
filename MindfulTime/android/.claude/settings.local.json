@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo run:android:*)",
+      "Bash(adb devices:*)",
+      "Bash(\"C:\\Users\\Darius\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe\" devices)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

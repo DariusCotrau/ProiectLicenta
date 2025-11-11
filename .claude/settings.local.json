@@ -10,7 +10,18 @@
       "Bash(npx expo start:*)",
       "Bash(timeout /t 5 /nobreak)",
       "Bash(nul)",
-      "Bash(npm run start:clear:*)"
+      "Bash(npm run start:clear:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(test:*)",
+      "Bash(./gradlew:*)",
+      "Bash(node:*)",
+      "Bash(java -version:*)",
+      "Bash(where java:*)",
+      "Bash(export JAVA_HOME=\"/c/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(cmd.exe /c \"set JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot && gradlew.bat tasks\")",
+      "Bash(JAVA_HOME=\"/c/Program Files/Eclipse Adoptium/jdk-17.0.17.10-hotspot\" ./gradlew.bat:*)",
+      "Bash(./gradlew.bat:*)"
     ],
     "deny": [],
     "ask": []
