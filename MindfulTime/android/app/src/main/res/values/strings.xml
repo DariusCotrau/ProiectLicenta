@@ -2,4 +2,13 @@
   <string name="app_name">MindfulTime</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+
+  <!-- Accessibility Service -->
+  <string name="accessibility_service_description">MindfulTime folosește acest serviciu pentru a monitoriza timpul de utilizare a aplicațiilor și pentru a te ajuta să-ți menții limitele setate. Nu colectăm sau transmitem date personale.</string>
+
+  <!-- Blocking Overlay -->
+  <string name="blocking_overlay_title">Aplicație Blocată</string>
+  <string name="blocking_overlay_message">Ai atins limita de timp pentru această aplicație.\n\nCompletează o activitate mindful pentru a câștiga mai mult timp!</string>
+  <string name="go_to_mindfultime">Înapoi la MindfulTime</string>
+  <string name="go_back">Înapoi</string>
 </resources>

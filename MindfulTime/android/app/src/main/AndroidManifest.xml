@@ -31,5 +31,28 @@
         <data android:scheme="exp+mindfultime"/>
       </intent-filter>
     </activity>
+
+    <!-- Accessibility Service pentru monitorizarea aplicațiilor -->
+    <service
+      android:name=".AppMonitoringService"
+      android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+      android:exported="true"
+      android:label="@string/app_name">
+      <intent-filter>
+        <action android:name="android.accessibilityservice.AccessibilityService" />
+      </intent-filter>
+      <meta-data
+        android:name="android.accessibilityservice"
+        android:resource="@xml/accessibility_service_config" />
+    </service>
+
+    <!-- Activity pentru overlay-ul de blocare -->
+    <activity
+      android:name=".BlockingOverlayActivity"
+      android:excludeFromRecents="true"
+      android:exported="false"
+      android:launchMode="singleTask"
+      android:noHistory="true"
+      android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
   </application>
 </manifest>

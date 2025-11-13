@@ -1,10 +1,12 @@
 import { Platform, Linking, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NativeUsageStatsService from './NativeUsageStatsService';
+import AppBlockingService from './AppBlockingService';
 
 const STORAGE_KEYS = {
   PERMISSIONS_REQUESTED: '@mindfultime:permissions_requested',
   TRACKING_ENABLED: '@mindfultime:tracking_enabled',
+  BLOCKING_ENABLED: '@mindfultime:blocking_enabled',
 };
 
 /**
@@ -145,20 +147,104 @@ class PermissionService {
   }
 
   /**
+   * Verifică dacă aplicația are permisiunea de overlay
+   */
+  async hasOverlayPermission(): Promise<boolean> {
+    try {
+      return await AppBlockingService.hasOverlayPermission();
+    } catch (error) {
+      console.error('[PermissionService] Error checking overlay permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Cere permisiunea de overlay
+   */
+  async requestOverlayPermission(): Promise<void> {
+    try {
+      await AppBlockingService.requestOverlayPermission();
+      await this.setPermissionsRequested(true);
+    } catch (error) {
+      console.error('[PermissionService] Error requesting overlay permission:', error);
+      Alert.alert('Eroare', 'Nu s-a putut cere permisiunea de overlay.');
+    }
+  }
+
+  /**
+   * Verifică dacă Accessibility Service este activat
+   */
+  async hasAccessibilityPermission(): Promise<boolean> {
+    try {
+      return await AppBlockingService.hasAccessibilityPermission();
+    } catch (error) {
+      console.error('[PermissionService] Error checking accessibility permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Cere activarea Accessibility Service
+   */
+  async requestAccessibilityPermission(): Promise<void> {
+    try {
+      await AppBlockingService.requestAccessibilityPermission();
+      await this.setPermissionsRequested(true);
+    } catch (error) {
+      console.error('[PermissionService] Error requesting accessibility permission:', error);
+      Alert.alert('Eroare', 'Nu s-a putut cere permisiunea de accessibility.');
+    }
+  }
+
+  /**
+   * Verifică dacă blocarea aplicațiilor este activată
+   */
+  async isBlockingEnabled(): Promise<boolean> {
+    try {
+      const enabled = await AsyncStorage.getItem(STORAGE_KEYS.BLOCKING_ENABLED);
+      return enabled === 'true';
+    } catch (error) {
+      console.error('[PermissionService] Error checking blocking enabled:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Activează/dezactivează blocarea aplicațiilor
+   */
+  async setBlockingEnabled(enabled: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.BLOCKING_ENABLED,
+        enabled ? 'true' : 'false'
+      );
+      await AppBlockingService.setBlockingEnabled(enabled);
+    } catch (error) {
+      console.error('[PermissionService] Error setting blocking enabled:', error);
+    }
+  }
+
+  /**
    * Obține statusul complet al permisiunilor
    */
   async getPermissionsStatus(): Promise<{
     hasUsageStats: boolean;
     hasNotifications: boolean;
+    hasOverlay: boolean;
+    hasAccessibility: boolean;
     hasRequestedBefore: boolean;
     isTrackingEnabled: boolean;
+    isBlockingEnabled: boolean;
     platform: 'android';
   }> {
     return {
       hasUsageStats: await this.hasUsageStatsPermission(),
       hasNotifications: true, // Placeholder
+      hasOverlay: await this.hasOverlayPermission(),
+      hasAccessibility: await this.hasAccessibilityPermission(),
       hasRequestedBefore: await this.hasRequestedPermissions(),
       isTrackingEnabled: await this.isTrackingEnabled(),
+      isBlockingEnabled: await this.isBlockingEnabled(),
       platform: 'android',
     };
   }

@@ -28,6 +28,9 @@ class MainApplication : Application(), ReactApplication {
 
               // Add UsageStats native module
               add(UsageStatsPackage())
+
+              // Add AppBlocking native module
+              add(AppBlockingPackage())
             }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
