@@ -1,48 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, LoginCredentials, RegisterCredentials } from '../types';
+import DatabaseService from '../database/DatabaseService';
+import { hashPassword, verifyPassword, generateToken } from '../utils/crypto';
 
 // Storage keys
 const STORAGE_KEYS = {
   USER: '@mindfultime:user',
   AUTH_TOKEN: '@mindfultime:auth_token',
+  CURRENT_USER_ID: '@mindfultime:current_user_id',
 };
-
-// Hardcoded users for demonstration
-// Password: "password123" for all users
-const HARDCODED_USERS: Array<User & { password: string }> = [
-  {
-    id: '1',
-    email: 'admin@mindfultime.com',
-    name: 'Admin User',
-    password: 'password123',
-    createdAt: new Date('2024-01-01'),
-    avatar: '👨‍💼',
-  },
-  {
-    id: '2',
-    email: 'user@example.com',
-    name: 'John Doe',
-    password: 'password123',
-    createdAt: new Date('2024-01-15'),
-    avatar: '👤',
-  },
-  {
-    id: '3',
-    email: 'maria@example.com',
-    name: 'Maria Silva',
-    password: 'password123',
-    createdAt: new Date('2024-02-01'),
-    avatar: '👩',
-  },
-  {
-    id: '4',
-    email: 'test@test.com',
-    name: 'Test User',
-    password: 'test123',
-    createdAt: new Date('2024-03-01'),
-    avatar: '🧪',
-  },
-];
 
 class AuthService {
   /**
@@ -55,28 +21,33 @@ class AuthService {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Find user in hardcoded users
-      const foundUser = HARDCODED_USERS.find(
-        user =>
-          user.email.toLowerCase() === credentials.email.toLowerCase() &&
-          user.password === credentials.password
-      );
-
-      if (!foundUser) {
+      // Get user's password hash from database
+      const passwordHash = await DatabaseService.users.getUserPasswordHash(credentials.email);
+      if (!passwordHash) {
         throw new Error('Invalid email or password');
       }
 
-      // Remove password from user object
-      const { password, ...userWithoutPassword } = foundUser;
+      // Verify password
+      const isPasswordValid = await verifyPassword(credentials.password, passwordHash);
+      if (!isPasswordValid) {
+        throw new Error('Invalid email or password');
+      }
 
-      // Generate a simple token (in real app, this would come from backend)
-      const token = `token_${foundUser.id}_${Date.now()}`;
+      // Get user data
+      const user = await DatabaseService.users.getUserByEmail(credentials.email);
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-      // Store user and token
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userWithoutPassword));
+      // Generate token
+      const token = generateToken(user.id);
+
+      // Store user, token, and user ID
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
       await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, user.id);
 
-      return userWithoutPassword;
+      return user;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -94,10 +65,7 @@ class AuthService {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Check if email already exists
-      const existingUser = HARDCODED_USERS.find(
-        user => user.email.toLowerCase() === credentials.email.toLowerCase()
-      );
-
+      const existingUser = await DatabaseService.users.getUserByEmail(credentials.email);
       if (existingUser) {
         throw new Error('Email already registered');
       }
@@ -113,6 +81,9 @@ class AuthService {
         throw new Error('Password must be at least 6 characters');
       }
 
+      // Hash password
+      const passwordHash = await hashPassword(credentials.password);
+
       // Create new user
       const newUser: User = {
         id: Date.now().toString(),
@@ -122,16 +93,16 @@ class AuthService {
         avatar: '👤',
       };
 
-      // In a real app, this would be saved to a database
-      // For now, we'll just add it to our hardcoded array
-      HARDCODED_USERS.push({ ...newUser, password: credentials.password });
+      // Save user to database
+      await DatabaseService.users.createUser(newUser, passwordHash);
 
       // Generate token
-      const token = `token_${newUser.id}_${Date.now()}`;
+      const token = generateToken(newUser.id);
 
-      // Store user and token
+      // Store user, token, and user ID
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
       await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, newUser.id);
 
       return newUser;
     } catch (error) {
@@ -147,6 +118,7 @@ class AuthService {
     try {
       await AsyncStorage.removeItem(STORAGE_KEYS.USER);
       await AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      await AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID);
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
@@ -193,11 +165,59 @@ class AuthService {
   }
 
   /**
-   * Get all hardcoded users (for debugging/testing)
-   * Returns users without passwords
+   * Initialize demo users in database
+   * This should be called once on app initialization
    */
-  getHardcodedUsers(): Omit<User, 'password'>[] {
-    return HARDCODED_USERS.map(({ password, ...user }) => user);
+  async initializeDemoUsers(): Promise<void> {
+    try {
+      const demoUsers = [
+        {
+          id: '1',
+          email: 'admin@mindfultime.com',
+          name: 'Admin User',
+          password: 'password123',
+          avatar: '👨‍💼',
+          createdAt: new Date('2024-01-01'),
+        },
+        {
+          id: '2',
+          email: 'user@example.com',
+          name: 'John Doe',
+          password: 'password123',
+          avatar: '👤',
+          createdAt: new Date('2024-01-15'),
+        },
+        {
+          id: '3',
+          email: 'maria@example.com',
+          name: 'Maria Silva',
+          password: 'password123',
+          avatar: '👩',
+          createdAt: new Date('2024-02-01'),
+        },
+        {
+          id: '4',
+          email: 'test@test.com',
+          name: 'Test User',
+          password: 'test123',
+          avatar: '🧪',
+          createdAt: new Date('2024-03-01'),
+        },
+      ];
+
+      for (const demoUser of demoUsers) {
+        // Check if user already exists
+        const existingUser = await DatabaseService.users.getUserByEmail(demoUser.email);
+        if (!existingUser) {
+          const { password, ...userData } = demoUser;
+          const passwordHash = await hashPassword(password);
+          await DatabaseService.users.createUser(userData, passwordHash);
+          console.log(`Demo user created: ${demoUser.email}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing demo users:', error);
+    }
   }
 }
 

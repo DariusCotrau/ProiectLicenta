@@ -1,20 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { App, CompletedTask, UserStats, AppSettings, DailyUsage } from '../types';
+import DatabaseService from '../database/DatabaseService';
 
 const STORAGE_KEYS = {
-  APPS: '@mindfultime:apps',
-  COMPLETED_TASKS: '@mindfultime:completed_tasks',
-  USER_STATS: '@mindfultime:user_stats',
-  SETTINGS: '@mindfultime:settings',
-  DAILY_USAGE: '@mindfultime:daily_usage',
+  CURRENT_USER_ID: '@mindfultime:current_user_id',
 };
 
+/**
+ * StorageService now acts as a wrapper around DatabaseService
+ * It maintains backward compatibility while using the database
+ */
 class StorageService {
+  private async getCurrentUserId(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID);
+    } catch (error) {
+      console.error('Error getting current user ID:', error);
+      return null;
+    }
+  }
+
   // Apps Management
   async getApps(): Promise<App[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.APPS);
-      return data ? JSON.parse(data) : [];
+      const userId = await this.getCurrentUserId();
+      if (!userId) return [];
+
+      return await DatabaseService.apps.getApps(userId);
     } catch (error) {
       console.error('Error getting apps:', error);
       return [];
@@ -23,26 +35,30 @@ class StorageService {
 
   async saveApps(apps: App[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.APPS, JSON.stringify(apps));
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+
+      await DatabaseService.apps.bulkUpdateApps(userId, apps);
     } catch (error) {
       console.error('Error saving apps:', error);
     }
   }
 
   async updateApp(appId: string, updates: Partial<App>): Promise<void> {
-    const apps = await this.getApps();
-    const index = apps.findIndex(app => app.id === appId);
-    if (index !== -1) {
-      apps[index] = { ...apps[index], ...updates };
-      await this.saveApps(apps);
+    try {
+      await DatabaseService.apps.updateApp(appId, updates);
+    } catch (error) {
+      console.error('Error updating app:', error);
     }
   }
 
   // Completed Tasks Management
   async getCompletedTasks(): Promise<CompletedTask[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_TASKS);
-      return data ? JSON.parse(data) : [];
+      const userId = await this.getCurrentUserId();
+      if (!userId) return [];
+
+      return await DatabaseService.tasks.getCompletedTasks(userId);
     } catch (error) {
       console.error('Error getting completed tasks:', error);
       return [];
@@ -51,34 +67,43 @@ class StorageService {
 
   async addCompletedTask(task: CompletedTask): Promise<void> {
     try {
-      const tasks = await this.getCompletedTasks();
-      tasks.push(task);
-      await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_TASKS, JSON.stringify(tasks));
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+
+      await DatabaseService.tasks.completeTask(userId, task);
     } catch (error) {
       console.error('Error adding completed task:', error);
     }
   }
 
   async getTasksCompletedToday(): Promise<CompletedTask[]> {
-    const tasks = await this.getCompletedTasks();
-    const today = new Date().toDateString();
-    return tasks.filter(task =>
-      new Date(task.completedAt).toDateString() === today
-    );
+    try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) return [];
+
+      return await DatabaseService.tasks.getCompletedTasksToday(userId);
+    } catch (error) {
+      console.error('Error getting tasks completed today:', error);
+      return [];
+    }
   }
 
   // User Stats Management
   async getUserStats(): Promise<UserStats> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.USER_STATS);
-      return data ? JSON.parse(data) : {
-        totalTasksCompleted: 0,
-        totalTimeEarned: 0,
-        totalTimeSaved: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        tasksCompletedToday: 0,
-      };
+      const userId = await this.getCurrentUserId();
+      if (!userId) {
+        return {
+          totalTasksCompleted: 0,
+          totalTimeEarned: 0,
+          totalTimeSaved: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          tasksCompletedToday: 0,
+        };
+      }
+
+      return await DatabaseService.users.getUserStats(userId);
     } catch (error) {
       console.error('Error getting user stats:', error);
       return {
@@ -94,9 +119,10 @@ class StorageService {
 
   async updateUserStats(stats: Partial<UserStats>): Promise<void> {
     try {
-      const currentStats = await this.getUserStats();
-      const updatedStats = { ...currentStats, ...stats };
-      await AsyncStorage.setItem(STORAGE_KEYS.USER_STATS, JSON.stringify(updatedStats));
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+
+      await DatabaseService.users.updateUserStats(userId, stats);
     } catch (error) {
       console.error('Error updating user stats:', error);
     }
@@ -105,13 +131,17 @@ class StorageService {
   // Settings Management
   async getSettings(): Promise<AppSettings> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.SETTINGS);
-      return data ? JSON.parse(data) : {
-        notificationsEnabled: true,
-        strictMode: false,
-        dailyGoal: 60, // 60 minutes default
-        theme: 'auto',
-      };
+      const userId = await this.getCurrentUserId();
+      if (!userId) {
+        return {
+          notificationsEnabled: true,
+          strictMode: false,
+          dailyGoal: 60,
+          theme: 'auto',
+        };
+      }
+
+      return await DatabaseService.users.getUserSettings(userId);
     } catch (error) {
       console.error('Error getting settings:', error);
       return {
@@ -125,9 +155,10 @@ class StorageService {
 
   async updateSettings(settings: Partial<AppSettings>): Promise<void> {
     try {
-      const currentSettings = await this.getSettings();
-      const updatedSettings = { ...currentSettings, ...settings };
-      await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updatedSettings));
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+
+      await DatabaseService.users.updateUserSettings(userId, settings);
     } catch (error) {
       console.error('Error updating settings:', error);
     }
@@ -136,9 +167,11 @@ class StorageService {
   // Daily Usage Management
   async getDailyUsage(date?: string): Promise<DailyUsage | null> {
     try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) return null;
+
       const dateKey = date || new Date().toDateString();
-      const data = await AsyncStorage.getItem(`${STORAGE_KEYS.DAILY_USAGE}:${dateKey}`);
-      return data ? JSON.parse(data) : null;
+      return await DatabaseService.tasks.getDailyUsage(userId, dateKey);
     } catch (error) {
       console.error('Error getting daily usage:', error);
       return null;
@@ -147,10 +180,10 @@ class StorageService {
 
   async updateDailyUsage(usage: DailyUsage): Promise<void> {
     try {
-      await AsyncStorage.setItem(
-        `${STORAGE_KEYS.DAILY_USAGE}:${usage.date}`,
-        JSON.stringify(usage)
-      );
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+
+      await DatabaseService.tasks.saveDailyUsage(userId, usage);
     } catch (error) {
       console.error('Error updating daily usage:', error);
     }
@@ -159,6 +192,7 @@ class StorageService {
   // Clear all data (useful for testing)
   async clearAll(): Promise<void> {
     try {
+      await DatabaseService.reset();
       await AsyncStorage.clear();
     } catch (error) {
       console.error('Error clearing storage:', error);
