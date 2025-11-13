@@ -7,7 +7,10 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { AuthProvider } from './src/context/AuthContext';
 import { colors } from './src/constants/colors';
 import { initializeDemoData } from './src/utils/initializeDemoData';
+import { initializeDefaultTasks } from './src/utils/initializeTasks';
 import RewardService from './src/services/RewardService';
+import DatabaseService from './src/database/DatabaseService';
+import AuthService from './src/services/AuthService';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,11 +18,32 @@ export default function App() {
   useEffect(() => {
     const initialize = async () => {
       try {
+        console.log('Initializing database...');
+        // Initialize database first
+        await DatabaseService.initialize();
+        console.log('Database initialized');
+
+        // Initialize demo users
+        console.log('Initializing demo users...');
+        await AuthService.initializeDemoUsers();
+        console.log('Demo users initialized');
+
+        // Initialize default tasks
+        console.log('Initializing default tasks...');
+        await initializeDefaultTasks();
+        console.log('Default tasks initialized');
+
         // Initialize demo data on first launch
+        console.log('Initializing demo data...');
         await initializeDemoData();
+        console.log('Demo data initialized');
 
         // Initialize reward system
+        console.log('Initializing reward system...');
         await RewardService.initialize();
+        console.log('Reward system initialized');
+
+        console.log('App initialization complete');
       } catch (error) {
         console.error('Error initializing app:', error);
       } finally {
